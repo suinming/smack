@@ -1,0 +1,1 @@
+export const AVATARS_COUNT = 28

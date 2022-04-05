@@ -1,0 +1,33 @@
+.channel {
+  background: var(--primary);
+  height: 100%;
+  max-width: 200px;
+  padding: 10px;
+}
+
+.channel-header {
+  border: 1px solid rgba(200, 187, 200, 0.3);
+  color: var(--lunar);
+  text-align: center;
+}
+
+.channel-label {
+  line-height: 2;
+  display: inline;
+  color: var(--lunar);
+}
+
+.channel-label .inner:hover {
+  background: var(--primary-nav);
+  cursor: pointer;
+}
+
+.channel-label h3 span {
+  float: right;
+  cursor: pointer;
+  transition: ease-in-out 0.3s;
+}
+
+.channel-label h3 span:hover {
+  color: var(--cloudy);
+}
