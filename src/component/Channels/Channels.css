@@ -1,7 +1,7 @@
 .channel {
   background: var(--primary);
   height: 100%;
-  max-width: 200px;
+  min-width: 200px;
   padding: 10px;
 }
 
@@ -17,12 +17,23 @@
   color: var(--lunar);
 }
 
+.channel-label .inner.selected {
+  padding: 0 5px;
+  border-radius: 5px;
+}
+
+.channel-label .inner.selected,
+.channel-label .inner.selected:hover {
+  background: #0F78D7;
+  cursor: pointer;
+}
+
 .channel-label .inner:hover {
   background: var(--primary-nav);
   cursor: pointer;
 }
 
-.channel-label h3 span {
+.channel-label span {
   float: right;
   cursor: pointer;
   transition: ease-in-out 0.3s;
@@ -30,4 +41,11 @@
 
 .channel-label h3 span:hover {
   color: var(--cloudy);
+}
+
+/* channel form*/
+
+.form.channel-form {
+  margin: auto;
+  box-shadow: none;
 }

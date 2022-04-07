@@ -10,20 +10,24 @@ import {
 import ChatApp from './component/ChatApp/ChatApp';
 import UserCreate from './component/UserCreate/UserCreate';
 import UserLogin from './component/UserLogin/UserLogin';
-import { AuthService } from './services';
+import { AuthService, ChatService, SocketService } from './services';
 
 const authService = new AuthService()
+const chatService = new ChatService(authService.getBearerHeader)
+const socketService = new SocketService(chatService.addChannel, chatService.getAllChannels)
 
 export const UserContext = createContext()
 const AuthProvider = ({ children }) => {
   const context = {
     authService,
+    chatService,
+    socketService,
     // message service
     appSelectedChannel: {},
     appSetChannel: (ch) => {
       setAuthContext({ ...authContext, appSelectedChannel: ch })
+      chatService.setSelectedChannel(ch)
     }
-    // update message service
   }
   const [authContext, setAuthContext] = useState(context)
 

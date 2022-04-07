@@ -1,4 +1,4 @@
-import React,{useContext, useState} from 'react';
+import React,{useContext, useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom'
 import { UserContext } from '../../App';
 import Channels from '../Channels/Channels';
@@ -7,7 +7,7 @@ import UserAvatar from '../UserAvatar/UserAvatar';
 import './ChatApp.css'
 
 const ChatApp = (props) => {
-    const {authService} = useContext(UserContext)
+    const {authService, socketService} = useContext(UserContext)
     const [modol, setModol] = useState(false)
 
     let navigation = useNavigate()
@@ -17,6 +17,11 @@ const ChatApp = (props) => {
         setModol(false)
         navigation('/')
     }
+
+    useEffect(() => {
+        socketService.establishConnection()
+        return () => socketService.closeConnection()
+    }, [])
 
     return (
         <div className='chat-app'>
