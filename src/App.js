@@ -14,7 +14,7 @@ import { AuthService, ChatService, SocketService } from './services';
 
 const authService = new AuthService()
 const chatService = new ChatService(authService.getBearerHeader)
-const socketService = new SocketService(chatService.addChannel, chatService.getAllChannels)
+const socketService = new SocketService(chatService)
 
 export const UserContext = createContext()
 const AuthProvider = ({ children }) => {

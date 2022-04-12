@@ -2,16 +2,21 @@ import React,{useState, useEffect, useContext} from 'react'
 import { UserContext } from '../../App'
 import Modol from '../Modol/Modol'
 import './Channels.css'
+import { toCamelCase } from '../../helper/camelCase'
 
-const Channels = () => {
+const Channels = ({ unread }) => {
   const INIT = {name:'', description:''}
   const [channels, setChannels] = useState([])
   const [newChannel, setNewChannel] = useState(INIT)
+  const [unreadChannels, setUnreadChannels] = useState([])
   const {authService, chatService, socketService, appSetChannel, appSelectedChannel} = useContext(UserContext)
   const [modol, setModol] = useState(false)
 
   useEffect(() => {
-    chatService.findAllChannels().then(res => setChannels(res))
+    chatService.findAllChannels().then(res => {
+      setChannels(res)
+      appSetChannel(res[0])
+    })
   }, [])
 
   useEffect(() => {
@@ -20,8 +25,14 @@ const Channels = () => {
     })
   }, [])
 
+  useEffect(() => {
+    setUnreadChannels(unread)
+  }, [unread])
+
   const selectChannel = (channel) => {
     appSetChannel(channel)
+    const unread = chatService.setUnreadChannels(channel)
+    setUnreadChannels(unread)
   }
 
   const onChange = ({target:{name, value}}) => {
@@ -30,7 +41,8 @@ const Channels = () => {
 
   const createChannel = (e) => {
     e.preventDefault()
-    socketService.addChannel(newChannel.name, newChannel.description)
+    const camelChannel = toCamelCase(newChannel.name)
+    socketService.addChannel(camelChannel, newChannel.description)
     setNewChannel(INIT)
     setModol(false)
   }
@@ -45,7 +57,7 @@ const Channels = () => {
         <div className="channel-list">
           {!!channels.length ? channels.map(channel => (
               <div 
-              className="channel-label" 
+              className={`channel-label ${unreadChannels.includes(channel.id) ? 'unread' : ''}`}
               key={channel.name}
               onClick={() => selectChannel(channel)}
               >

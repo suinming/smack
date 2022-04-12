@@ -12,6 +12,8 @@ const URL_USER_BY_EMAIL = `${URL_USER}/byEmail/`
 
 const URL_GET_CHANNEL = `${base_URL}/channel`
 
+const URL_GET_MESSAGES = `${base_URL}/message/byChannel/`
+
 const headers = { 'Content-Type': 'application/json' }
 
 class User {
@@ -133,6 +135,8 @@ export class ChatService {
         this.getAuthHeader = authHeader
         this.channels = []
         this.selectedChannel = {}
+        this.messages = []
+        this.unreadChannels = []
     }
 
     async findAllChannels() {
@@ -141,7 +145,7 @@ export class ChatService {
             let response = await axios.get(URL_GET_CHANNEL, { headers })
             response = response.data.map(channel => ({
                 name: channel.name,
-                id: channel.id,
+                id: channel._id,
                 description: channel.description
             }))
             this.channels = [...response]
@@ -152,9 +156,45 @@ export class ChatService {
         }
     }
 
+    async findAllMessagesForChannel(channelId) {
+        const headers = this.getAuthHeader()
+        try {
+            let response = await axios.get(URL_GET_MESSAGES + channelId, { headers })
+            response = response.data.map(message => ({
+                messageBody: message.messageBody,
+                channelId: message.channelId,
+                id: message._id,
+                userName: message.userName,
+                userAvatar: message.userAvatar,
+                userAvatarColor: message.userAvatarColor,
+                timeStamp: message.timeStamp
+            }))
+            this.messages = response
+            return response
+
+        } catch (error) {
+            console.error(error)
+            this.messages = []
+            throw error
+        }
+    }
+
     addChannel = (channel) => this.channels.push(channel)
 
+    addMessage = (chat) => this.messages.push(chat)
+
+    addToUnread = (unreadChat) => this.unreadChannels.push(unreadChat)
+
+    setUnreadChannels = (channel) => {
+        if (this.unreadChannels.includes(channel.id)) {
+            this.unreadChannels = this.unreadChannels.filter(ch => ch !== channel.id)
+        }
+        return this.unreadChannels
+    }
+
     getAllChannels = () => this.channels
+
+    getSelectedChannel = (channel) => this.selectedChannel
 
     setSelectedChannel = (channel) => this.selectedChannel = channel
 }
@@ -162,9 +202,8 @@ export class ChatService {
 export class SocketService {
     socket = io('http://localhost:3005/');
 
-    constructor(socketAddChannel, getChannelList) {
-        this.socketAddChannel = socketAddChannel
-        this.getChannelList = getChannelList
+    constructor(chatService) {
+        this.chatService = chatService
     }
 
     establishConnection() {
@@ -184,9 +223,55 @@ export class SocketService {
     getChannel(callback) {
         this.socket.on('channelCreated', (name, description, id) => {
             const channel = { name, description, id }
-            this.socketAddChannel(channel)
-            const channelList = this.getChannelList()
+            this.chatService.addChannel(channel)
+            const channelList = this.chatService.getAllChannels()
             callback(channelList)
+        })
+    }
+
+    addMessage(messageBody, channelId, user) {
+        const { userName, userId, userAvatar, userAvatarColor } = user
+        if (!!messageBody && !!channelId && !!user) {
+            this.socket.emit('newMessage',
+                messageBody, userId, channelId, userName,
+                userAvatar, userAvatarColor
+            )
+        }
+    }
+
+    getChatMessage(callback) {
+        this.socket.on("messageCreated",
+            (messageBody, userId, channelId, userName,
+                userAvatar, userAvatarColor, id, timeStamp) => {
+                const channel = this.chatService.getSelectedChannel()
+                const chat = {
+                    messageBody, userId, channelId, userName,
+                    userAvatar, userAvatarColor, id, timeStamp
+                }
+
+                //this.chatService.addMessage(chat)  ! bug 
+
+                if (channelId !== channel.id && !this.chatService.unreadChannels.includes(channelId)) {
+                    this.chatService.addToUnread(channelId)
+                }
+
+                // bug fixed  
+                this.chatService.messages = [...this.chatService.messages, chat]
+                callback(chat, this.chatService.messages)
+            })
+    }
+
+    startTyping(userName, channelId) {
+        this.socket.emit('startType', userName, channelId)
+    }
+
+    stopTyping(userName) {
+        this.socket.emit('stopType', userName)
+    }
+
+    getUserTyping(callback) {
+        this.socket.on('userTypingUpdate', (typingUser) => {
+            callback(typingUser)
         })
     }
 

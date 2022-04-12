@@ -43,6 +43,10 @@
   color: var(--cloudy);
 }
 
+.channel-label.unread {
+  font-weight: bold;
+}
+
 /* channel form*/
 
 .form.channel-form {
