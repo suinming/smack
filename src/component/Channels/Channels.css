@@ -12,10 +12,19 @@
 }
 
 .channel-label {
+  position: relative;
   line-height: 2;
-  display: inline;
+  /*display: inline;*/
   color: var(--lunar);
 }
+
+.channel-label .ellipsis {
+  position: absolute;
+  left: 170px;
+  top: 5px;
+  cursor: pointer;
+}
+
 
 .channel-label .inner.selected {
   padding: 0 5px;

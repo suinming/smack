@@ -3,11 +3,15 @@ import { UserContext } from '../../App'
 import UserAvatar from '../UserAvatar/UserAvatar'
 import './Chats.css'
 import {dateFormat} from '../../helper/dateFormat.js'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEllipsisV } from '@fortawesome/free-solid-svg-icons'
+import SelectBox from '../SelectBox/SelectBox'
 
 const Chats = ({ chats }) => {
   const {authService, chatService, appSelectedChannel, socketService} = useContext(UserContext)
   const [messages,setMessages] = useState([])
   const [messageBody, setMessageBody] = useState('')
+  const [clickId, setClickId] = useState('')
 
   // typing message hook
   const [typingMessage, setTypingMessage] = useState('')
@@ -18,12 +22,9 @@ const Chats = ({ chats }) => {
   }, [chats])
 
   useEffect(() =>{
-    if(appSelectedChannel.id){
+    if(appSelectedChannel && appSelectedChannel.id){
       chatService.findAllMessagesForChannel(appSelectedChannel.id)
       .then(res => setMessages(res))
-      // why i can not add .then(res => console.log(res)) 
-      // it give me the error at line 48 can not read
-      // the undefined length !!messages.length ?
     }
   }, [appSelectedChannel])
 
@@ -34,8 +35,6 @@ const Chats = ({ chats }) => {
       // iterate users object
       // users object data type => {userName : channel id}
       for (const [typeUser, chId] of Object.entries(users)) {
-        console.log(Object.entries(users));
-        console.log(users);
         if(typeUser !== authService.name && chId === appSelectedChannel.id){
           names = (names === '' ? typeUser : `${names},${typeUser}`)
           userTyping += 1
@@ -80,11 +79,16 @@ const Chats = ({ chats }) => {
     setMessageBody('')
   }
 
+  const showModol = clickId => {setClickId(clickId)}
+
+
   return(
     <div className='chat'>
       <div className="chat-header">
-        <h3>#{appSelectedChannel.name}</h3>
-        <h4>{appSelectedChannel.description}</h4>
+        <div>
+          <h3>#{appSelectedChannel.name}</h3>
+          <h4>{appSelectedChannel.description}</h4>
+        </div>
       </div>
       <div className="chat-list">
         {!!messages.length ? 
@@ -99,11 +103,19 @@ const Chats = ({ chats }) => {
               <small>{dateFormat(message.timeStamp)}</small>
               <div className="message-body">{message.messageBody}</div>
             </div>
+          <FontAwesomeIcon icon={faEllipsisV} className="ellipsis" size="lg" onClick={() => showModol(message.id)}/>
+          {message.id === clickId && 
+              <SelectBox 
+              data = {messages}
+              action = {{target:'message', id:message.id}}
+              showModol = {showModol} 
+              onClickOutside={() => {setClickId('')}}/>
+          }
           </div>)) :
           <div>No messages</div>
         }
       </div>
-
+      
       <form className='chat-bar' onSubmit={sendMessage}>
         <div className="typing">{typingMessage}</div>
         <div className='chat-wrapper'>
@@ -114,8 +126,8 @@ const Chats = ({ chats }) => {
           <input type="submit" className='submit-btn' value='SEND'/>
         </div>
       </form>
-
-    </div>
+      
+    </div> 
   )
 }
 

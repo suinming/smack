@@ -3,6 +3,9 @@ import { UserContext } from '../../App'
 import Modol from '../Modol/Modol'
 import './Channels.css'
 import { toCamelCase } from '../../helper/camelCase'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEllipsisV } from '@fortawesome/free-solid-svg-icons'
+import SelectBox from '../SelectBox/SelectBox'
 
 const Channels = ({ unread }) => {
   const INIT = {name:'', description:''}
@@ -11,12 +14,13 @@ const Channels = ({ unread }) => {
   const [unreadChannels, setUnreadChannels] = useState([])
   const {authService, chatService, socketService, appSetChannel, appSelectedChannel} = useContext(UserContext)
   const [modol, setModol] = useState(false)
+  const [clickId, setClickId] = useState('')
 
   useEffect(() => {
-    chatService.findAllChannels().then(res => {
-      setChannels(res)
-      appSetChannel(res[0])
-    })
+      chatService.findAllChannels().then(res => {
+        setChannels(res)
+        appSetChannel(res[0])
+      })
   }, [])
 
   useEffect(() => {
@@ -47,6 +51,8 @@ const Channels = ({ unread }) => {
     setModol(false)
   }
 
+  const showSelectBox = clickId => setClickId(clickId)
+
   return(
     <>
       <div className="channel">
@@ -55,15 +61,23 @@ const Channels = ({ unread }) => {
         </div>
         <h3 className="channel-label">Channels <span onClick={() => setModol(true)}>Add +</span></h3>
         <div className="channel-list">
-          {!!channels.length ? channels.map(channel => (
+          {!!channels.length && channels[0].id? 
+            channels.map(channel => (
               <div 
               className={`channel-label ${unreadChannels.includes(channel.id) ? 'unread' : ''}`}
-              key={channel.name}
+              key={channel.id}
               onClick={() => selectChannel(channel)}
               >
-                  <div className={`inner ${(appSelectedChannel.id === channel.id) ? 'selected': ''}`}>
-                    #{channel.name}
-                  </div>
+                <div className={`inner ${(appSelectedChannel.id === channel.id) ? 'selected': ''}`}>
+                  #{channel.name}
+                </div>
+                <FontAwesomeIcon icon={faEllipsisV} className="ellipsis" size="lg" onClick={() => showSelectBox(channel.id)}/>
+                {channel.id === clickId && 
+                    <SelectBox 
+                    action = {{target:'channel', id:channel.id}}
+                    showModol = {showSelectBox} 
+                    onClickOutside={() => {setClickId('')}}/>
+                }
               </div>
           )) : <div>No channels. Please add the channel!</div>}
         </div>

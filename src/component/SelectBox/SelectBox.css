@@ -1,0 +1,24 @@
+.selectBox {
+  color: black;
+  position: absolute;
+  /*font-size: 20px;*/
+  top: 0;
+  right: 20px;
+  list-style: none;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 0;
+  margin: 0;
+  z-index: 5;
+  background-color: burlywood;
+}
+
+.selectBox>li {
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.selectBox>li:hover {
+  background-color: gainsboro;
+}

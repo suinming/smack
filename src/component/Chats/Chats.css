@@ -18,7 +18,21 @@
 
 .chat-message {
   display: flex;
-  padding-bottom: 15px;
+  position: relative;
+  padding: 8px;
+  /* padding-top: 5px;
+  padding-bottom: 15px; */
+  border-radius: 5px;
+}
+
+.chat-message:hover {
+  background-color: var(--sky-tint);
+}
+
+.chat-message .ellipsis {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
 }
 
 .chat-user {

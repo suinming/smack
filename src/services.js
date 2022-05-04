@@ -1,6 +1,6 @@
 import axios from "axios"
 import io from 'socket.io-client';
-
+//user
 const base_URL = 'http://localhost:3005/v1'
 const URL_account = `${base_URL}/account`
 const URL_login = `${URL_account}/login`
@@ -9,11 +9,12 @@ const URL_register = `${URL_account}/register`
 const URL_USER = `${base_URL}/user`
 const URL_USER_ADD = `${URL_USER}/add`
 const URL_USER_BY_EMAIL = `${URL_USER}/byEmail/`
-
+// channel
 const URL_GET_CHANNEL = `${base_URL}/channel`
-
+// message
+const URL_MESSAGE = `${base_URL}/message/`
 const URL_GET_MESSAGES = `${base_URL}/message/byChannel/`
-
+// headers
 const headers = { 'Content-Type': 'application/json' }
 
 class User {
@@ -80,6 +81,7 @@ export class AuthService extends User {
         }
     }
 
+
     async createUser(name, email, avatarName, avatarColor) {
         const headers = this.getBearerHeader()
         const body = {
@@ -90,8 +92,24 @@ export class AuthService extends User {
         }
         try {
             const response = await axios.post(URL_USER_ADD, body, { headers })
-            console.log(response.data)
             this.setUserData(response.data)
+        } catch (error) {
+            console.error(error)
+            throw (error)
+        }
+    }
+
+    async updateUser(userId, name, email, avatarName, avatarColor) {
+        const headers = this.getBearerHeader()
+        const body = {
+            'name': name,
+            'email': email,
+            'avatarName': avatarName,
+            'avatarColor': avatarColor
+        }
+        try {
+            await axios.put(URL_USER + '/' + userId, body, { headers })
+            this.setUserData({ ...body, _id: this.id })
         } catch (error) {
             console.error(error)
             throw (error)
@@ -175,6 +193,47 @@ export class ChatService {
         } catch (error) {
             console.error(error)
             this.messages = []
+            throw error
+        }
+    }
+
+    async deleteMessage(messageId) {
+        const headers = this.getAuthHeader()
+        try {
+            await axios.delete(URL_MESSAGE + messageId, { headers })
+            let deleteIndex
+            for (let index = 0; index < this.messages.length; index++) {
+                if (this.messages[index].id === messageId) {
+                    deleteIndex = index
+                    break
+                }
+            }
+            this.messages.splice(deleteIndex, 1)
+        } catch (error) {
+            console.error(error)
+            throw error
+        }
+    }
+
+    async deleteChannel(channelId) {
+        const headers = this.getAuthHeader()
+        try {
+            await axios.delete(URL_GET_CHANNEL + '/' + channelId, { headers })
+            let deleteIndex
+            for (let index = 0; index < this.channels.length; index++) {
+                if (this.channels[index].id === channelId) {
+                    deleteIndex = index
+                    break
+                }
+            }
+            if (this.selectedChannel.id === channelId) {
+                for (let key in this.selectedChannel) {
+                    delete this.selectedChannel[key];
+                }
+            }
+            this.channels.splice(deleteIndex, 1)
+        } catch (error) {
+            console.error(error)
             throw error
         }
     }
